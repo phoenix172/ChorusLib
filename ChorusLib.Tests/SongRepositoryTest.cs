@@ -9,11 +9,11 @@ namespace ChorusLib.Tests
     [TestFixture]
     public class SongRepositoryTest
     {
-        private SongRepository _repo;
+        private IChorusApi _repo;
         [OneTimeSetUp]
         public void SetUp()
         {
-            _repo = new SongRepository("chorus.fightthe.pw/api");
+            _repo = new ChorusApi("chorus.fightthe.pw/api");
         }
 
         [TestCase("heaven")]

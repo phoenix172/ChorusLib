@@ -15,11 +15,13 @@ namespace ChorusLib
         const string ArchiveKey = "archive";
         private readonly string _downloadLocation;
         private readonly bool _overrideExisting;
+        private readonly IFileDownloader _downloader;
 
         public SongDownloader(string downloadLocation, bool overrideExisting = true)
         {
             _downloadLocation = downloadLocation;
             _overrideExisting = overrideExisting;
+            _downloader = new WebRequestDownloader();
         }
 
         public void Download(Song song)
@@ -36,17 +38,11 @@ namespace ChorusLib
 
         private void DownloadUnpackedSong(Song song)
         {
-            using (WebClient client = new WebClient())
+            if (!EnsureSongFolder(song, out string songFolder))
+                return;
+            foreach (var fileLink in song.DirectLinks.Values)
             {
-                if (!EnsureSongFolder(song, out string songFolder))
-                    return;
-                foreach (var fileLink in song.DirectLinks.Values)
-                {
-                    Uri fileUri = new Uri(fileLink);
-                    string fileName = Path.GetFileName(fileUri.LocalPath);
-                    string filePath = Path.Combine(songFolder, fileName);
-                    client.DownloadFile(fileLink, filePath);
-                }
+                _downloader.DownloadFile(fileLink, songFolder);
             }
         }
 
@@ -66,14 +62,10 @@ namespace ChorusLib
 
         private void DownloadAndUnpackSong(Song song)
         {
-            using (WebClient client = new WebClient())
-            {
-                string archiveLink = song.DirectLinks[ArchiveKey];
-                if (!EnsureSongFolder(song, out string songFolder)) return;
-                string downloadedArchive = Path.GetTempFileName();
-                client.DownloadFile(archiveLink, downloadedArchive);
-                ExtractArchive(downloadedArchive, songFolder);
-            }
+            string archiveLink = song.DirectLinks[ArchiveKey];
+            if (!EnsureSongFolder(song, out string songFolder)) return;
+            string archivePath = _downloader.DownloadFile(archiveLink, songFolder);
+            ExtractArchive(archivePath, songFolder);
         }
 
         private string GetSongFolder(Song song)

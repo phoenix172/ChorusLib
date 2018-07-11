@@ -9,6 +9,7 @@ namespace ChorusLib
     public interface IChorusApi
     {
         List<Song> Search(SongProps filter);
+        List<Song> Search(string filter);
     }
 
     public class ChorusApi : IChorusApi
@@ -23,7 +24,12 @@ namespace ChorusLib
         public List<Song> Search(SongProps filter)
         {
             string searchQuery = BuildSearchQuery(filter);
-            var jsonResponse = GetJsonSearchResponse(searchQuery);
+            return Search(searchQuery);
+        }
+
+        public List<Song> Search(string filter)
+        {
+            var jsonResponse = GetJsonSearchResponse(filter);
             var searchResult = JsonConvert.DeserializeObject<ChorusSearchResult>(jsonResponse);
             return searchResult.Songs;
         }
