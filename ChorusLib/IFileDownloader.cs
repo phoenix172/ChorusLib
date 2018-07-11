@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ChorusLib
 {
     interface IFileDownloader
     {
-        string DownloadFile(string address, string downloadLocation);
+        Task<string> DownloadFileAsync(string address, string downloadLocation);
     }
 }

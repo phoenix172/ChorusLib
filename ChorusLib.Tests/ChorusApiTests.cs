@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace ChorusLib.Tests
 {
     [TestFixture]
-    public class SongRepositoryTest
+    public class ChorusApiTests
     {
         private IChorusApi _repo;
         [OneTimeSetUp]
@@ -19,9 +20,9 @@ namespace ChorusLib.Tests
         [TestCase("heaven")]
         [TestCase("eagle")]
         [TestCase("future")]
-        public void Search_SongName(string songName)
+        public async Task Search_SongName(string songName)
         {
-            var result = _repo.Search(new SongProps
+            var result = await _repo.SearchAsync(new SongProps
             {
                 Name = songName
             });
@@ -33,9 +34,9 @@ namespace ChorusLib.Tests
         [TestCase("heaven", "helloween")]
         [TestCase("eagle", "helloween")]
         [TestCase("future", "helloween")]
-        public void Search_SongNameAndArtist(string songName, string artist)
+        public async Task Search_SongNameAndArtist(string songName, string artist)
         {
-            var result = _repo.Search(new SongProps
+            var result = await _repo.SearchAsync(new SongProps
             {
                 Name = songName,
                 Artist = artist

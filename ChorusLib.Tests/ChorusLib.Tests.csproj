@@ -48,8 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PathHelper.cs" />
-    <Compile Include="SongDownloaderTest.cs" />
-    <Compile Include="SongRepositoryTest.cs" />
+    <Compile Include="SongDownloaderTests.cs" />
+    <Compile Include="ChorusApiTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestData\TestSongs.cs" />
   </ItemGroup>

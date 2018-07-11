@@ -2,16 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace ChorusLib
 {
-    public interface IChorusApi
-    {
-        List<Song> Search(SongProps filter);
-        List<Song> Search(string filter);
-    }
-
     public class ChorusApi : IChorusApi
     {
         private readonly string _apiUrl;
@@ -21,15 +16,15 @@ namespace ChorusLib
             _apiUrl = apiUrl;
         }
 
-        public List<Song> Search(SongProps filter)
+        public async Task<List<Song>> SearchAsync(SongProps filter)
         {
             string searchQuery = BuildSearchQuery(filter);
-            return Search(searchQuery);
+            return await SearchAsync(searchQuery);
         }
 
-        public List<Song> Search(string filter)
+        public async Task<List<Song>> SearchAsync(string filter)
         {
-            var jsonResponse = GetJsonSearchResponse(filter);
+            var jsonResponse = await GetJsonSearchResponseAsync(filter);
             var searchResult = JsonConvert.DeserializeObject<ChorusSearchResult>(jsonResponse);
             return searchResult.Songs;
         }
@@ -40,21 +35,24 @@ namespace ChorusLib
                    $" album=\"{songProps.Album}\" genre=\"{songProps.Genre}\"";
         }
 
-        private string GetJsonSearchResponse(string searchQuery)
+        private async Task<string> GetJsonSearchResponseAsync(string searchQuery)
         {
-            return GetJsonResponse("search", $"query={searchQuery}");
+            return await GetJsonResponseAsync("search", $"query={searchQuery}");
         }
 
-        private string GetJsonResponse(string action, string query)
+        private async Task<string> GetJsonResponseAsync(string action, string query)
         {
-            UriBuilder uriBuilder = new UriBuilder("https", $"{_apiUrl}/{action}");
-            uriBuilder.Query = $"{query}";
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uriBuilder.Uri);
-            var response = (HttpWebResponse)request.GetResponse();
+            UriBuilder uriBuilder = new UriBuilder("https", $"{_apiUrl}/{action}")
+            {
+                Query = $"{query}"
+            };
+            HttpWebRequest request = WebRequest.CreateHttp(uriBuilder.Uri);
+            
+            using (var response = (HttpWebResponse) await request.GetResponseAsync())
             using (Stream responseStream = response.GetResponseStream())
             using (StreamReader streamReader = new StreamReader(responseStream))
             {
-                return streamReader.ReadToEnd();
+                return await streamReader.ReadToEndAsync();
             }
         }
     }

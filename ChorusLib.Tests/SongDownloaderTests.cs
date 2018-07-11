@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using static ChorusLib.Tests.PathHelper;
 using static ChorusLib.Tests.TestData.TestSongs;
@@ -11,14 +12,14 @@ using static ChorusLib.Tests.TestData.TestSongs;
 namespace ChorusLib.Tests
 {
     [TestFixture]
-    public class SongDownloaderTest
+    public class SongDownloaderTests
     {
         [TestCaseSource(nameof(GetSongs))]
-        public void Download_Song_DownloadsSongToLocation(Song testSong)
+        public async Task Download_Song_DownloadsSongToLocation(Song testSong)
         {
             var songDirectory = GetExpectedSongDirectory(testSong);
 
-            DownloadSong(testSong);
+            await DownloadSongAsync(testSong);
 
             Assert.That(songDirectory.Exists);
             Assert.That(songDirectory.GetFiles(), Has.Length.Positive);
@@ -30,10 +31,10 @@ namespace ChorusLib.Tests
             yield return MakeUnpackedSong();
         }
 
-        private void DownloadSong(Song testSong, bool overrideExisting = true)
+        private async Task DownloadSongAsync(Song testSong, bool overrideExisting = true)
         {
             SongDownloader downloader = new SongDownloader(SongDownloadPath, overrideExisting);
-            downloader.Download(testSong);
+            await downloader.DownloadAsync(testSong);
         }
     }
 }
