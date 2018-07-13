@@ -5,7 +5,7 @@ namespace ChorusLib
 {
     public interface IChorusApi
     {
-        Task<List<Song>> SearchAsync(SongProps filter);
+        Task<List<Song>> SearchAsync(SongProps filter, int page = 1);
         Task<List<Song>> SearchAsync(string filter);
     }
 }

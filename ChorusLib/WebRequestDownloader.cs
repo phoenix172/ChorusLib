@@ -46,10 +46,7 @@ namespace ChorusLib
             CookieContainer cookieBox, HttpWebResponse response)
         {
             var redirectLocation = GetRedirectLocationFromHeader(response);
-#if DEBUG
-            //Does not work!!! - Cannot download big files from google drive - unable to skip virus scan warning
-            redirectLocation = redirectLocation ?? await GetRedirectLocationFromGoogleConfirmAsync(response);
-#endif
+
             if (redirectLocation != null)
             {
                 return await DownloadFileAsync(redirectLocation, downloadLocation, cookieBox);
@@ -62,25 +59,6 @@ namespace ChorusLib
         {
             var header = response.GetResponseHeader("Location");
             return header == string.Empty ? null : header;
-        }
-
-        private static async Task<string> GetRedirectLocationFromGoogleConfirmAsync(HttpWebResponse response)
-        {
-            string host = response.ResponseUri.Host;
-            string scheme = response.ResponseUri.Scheme;
-            int port = response.ResponseUri.Port;
-            if (!host.EndsWith("google.com")) return null;
-            ContentType contentType = new ContentType(response.ContentType);
-            if (contentType.MediaType != "text/html") return null;
-            using (var responseStream = response.GetResponseStream())
-            {
-                HtmlDocument document = new HtmlDocument();
-                document.Load(responseStream);
-                string relativePath = document.GetElementbyId("uc-download-link")
-                    .GetAttributeValue("href", null);
-                UriBuilder builder = new UriBuilder(scheme, host, port, relativePath);
-                return builder.ToString();
-            }
         }
 
         private string GetLocalFilePath(HttpWebResponse response, string downloadLocation)

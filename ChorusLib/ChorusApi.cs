@@ -16,9 +16,9 @@ namespace ChorusLib
             _apiUrl = apiUrl;
         }
 
-        public async Task<List<Song>> SearchAsync(SongProps filter)
+        public async Task<List<Song>> SearchAsync(SongProps filter, int page = 1)
         {
-            string searchQuery = BuildSearchQuery(filter);
+            string searchQuery = BuildSearchQuery(filter, page);
             return await SearchAsync(searchQuery);
         }
 
@@ -29,10 +29,10 @@ namespace ChorusLib
             return searchResult.Songs;
         }
 
-        private string BuildSearchQuery(SongProps songProps)
+        private string BuildSearchQuery(SongProps songProps, int page = 1)
         {
             return $"name=\"{songProps.Name}\" artist=\"{songProps.Artist}\"" +
-                   $" album=\"{songProps.Album}\" genre=\"{songProps.Genre}\"";
+                   $" album=\"{songProps.Album}\" genre=\"{songProps.Genre}\"&from={(page-1)*20}";
         }
 
         private async Task<string> GetJsonSearchResponseAsync(string searchQuery)
