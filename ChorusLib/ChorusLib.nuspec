@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>Ivan Yochev</authors>
+    <owners>Ivan Yochev</owners>
+    <licenseUrl>https://raw.githubusercontent.com/phoenix172/ChorusLib/master/README.md</licenseUrl>
+    <projectUrl>https://github.com/phoenix172/ChorusLib</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>CloneHero CSharp Chorus GuitarHero</tags>
+  </metadata>
+</package>
