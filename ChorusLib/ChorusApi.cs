@@ -46,8 +46,11 @@ namespace ChorusLib
             {
                 Query = $"{query}"
             };
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
             HttpWebRequest request = WebRequest.CreateHttp(uriBuilder.Uri);
-            
+            request.ProtocolVersion = HttpVersion.Version11;
             using (var response = (HttpWebResponse) await request.GetResponseAsync())
             using (Stream responseStream = response.GetResponseStream())
             using (StreamReader streamReader = new StreamReader(responseStream))

@@ -21,15 +21,23 @@ namespace ChorusLib
 
         private async Task<string> DownloadFileAsync(string address, string downloadLocation, CookieContainer cookieBox)
         {
-            HttpWebRequest request = WebRequest.CreateHttp(address);
-            
-            request.AllowAutoRedirect = false;
-            request.CookieContainer = cookieBox;
+            WebRequest request = WebRequest.Create(address);
 
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
+            if (request is HttpWebRequest httpRequest)
             {
-                string filePath = await ExecuteRedirectAsync(downloadLocation, cookieBox, response);
-                if (filePath != null) return filePath;
+                httpRequest.AllowAutoRedirect = false;
+                httpRequest.CookieContainer = cookieBox;
+            }
+
+            using (WebResponse response = await request.GetResponseAsync())
+            {
+                string filePath;
+
+                if (response is HttpWebResponse httpResponse)
+                {
+                    filePath = await ExecuteRedirectAsync(downloadLocation, cookieBox, httpResponse);
+                    if (filePath != null) return filePath;
+                }
 
                 filePath = GetLocalFilePath(response, downloadLocation);
                 using (Stream dataStream = response.GetResponseStream())
@@ -61,10 +69,11 @@ namespace ChorusLib
             return header == string.Empty ? null : header;
         }
 
-        private string GetLocalFilePath(HttpWebResponse response, string downloadLocation)
+        private string GetLocalFilePath(WebResponse response, string downloadLocation)
         {
             string fileName;
-            var contentDispositionString = response.GetResponseHeader("Content-Disposition");
+            var contentDispositionString = (response as HttpWebResponse)?
+                .GetResponseHeader("Content-Disposition");
             if (!string.IsNullOrEmpty(contentDispositionString))
             {
                 var contentDisposition = new ContentDisposition(contentDispositionString);
