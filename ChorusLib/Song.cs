@@ -23,5 +23,18 @@ namespace ChorusLib
         public string Name { get; set; }
         public string Album { get; set; }
         public string Genre { get; set; }
+        public IEnumerable<Instrument> Instruments { get; set; }
+     
+        public enum Instrument
+        {
+            Guitar,
+            Bass,
+            Rhythm,
+            Drums,
+            Vocals,
+            Keys,
+            GuitarGhl,
+            BassGhl
+        }
     }
 }

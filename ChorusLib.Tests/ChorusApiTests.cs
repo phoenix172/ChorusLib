@@ -27,6 +27,8 @@ namespace ChorusLib.Tests
                 Name = songName
             });
 
+            if (result.Count == 0) Assert.Inconclusive("No songs found");
+
             Assert.That(result, Has.All.Matches<Song>(
                 x => x.Name.ToLower().Contains(songName.ToLower())));
         }
@@ -42,9 +44,52 @@ namespace ChorusLib.Tests
                 Artist = artist
             });
 
+            if (result.Count == 0) Assert.Inconclusive("No songs found");
+
             Assert.That(result, Has.All.Matches<SongProps>(
                 x => x.Name.ToLower().Contains(songName.ToLower())
                 && x.Artist.ToLower().Contains(artist.ToLower())));
+        }
+
+        private static readonly SongProps[] InstrumentCases = {
+            new SongProps { Name = "eagle",
+                Instruments = new List<SongProps.Instrument> { SongProps.Instrument.Drums, SongProps.Instrument.Guitar}
+            }
+        };
+
+        [TestCaseSource(nameof(InstrumentCases))]
+        public async Task Search_SongNameAndInstrument(SongProps props)
+        {
+            var result = await _repo.SearchAsync(props);
+
+            if (result.Count == 0) Assert.Inconclusive("No songs found");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Has.All.Matches<SongProps>(
+                    x => x.Name.ToLower().Contains(props.Name.ToLower())));
+                foreach (var song in result)
+                {
+                    Assert.That(song.Instruments, Is.SupersetOf(props.Instruments));
+                }
+            });
+        }
+
+        [TestCase("heaven", "helloween")]
+        [TestCase("eagle", "helloween")]
+        [TestCase("future", "helloween")]
+        public async Task Search_HasSongDetails(string songName, string artist)
+        {
+            var result = await _repo.SearchAsync(new SongProps
+            {
+                Name = songName,
+                Artist = artist
+            });
+
+            if (result.Count == 0) Assert.Inconclusive("No songs found");
+
+            Assert.That(result, Has.All.Matches<Song>(
+                x => x.Id != default && x.DirectLinks != default(Dictionary<string, string>)));
         }
     }
 }

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ChorusLib
 {
@@ -16,29 +19,40 @@ namespace ChorusLib
             _apiUrl = apiUrl;
         }
 
-        public async Task<List<Song>> SearchAsync(SongProps filter, int page = 1)
-        {
-            string searchQuery = BuildSearchQuery(filter, page);
-            return await SearchAsync(searchQuery);
-        }
+        public async Task<List<Song>> SearchAsync(SongProps filter, int page = 1) =>
+            await SearchAsync($"{BuildSearchQuery(filter)}", page);
 
-        public async Task<List<Song>> SearchAsync(string filter)
+        public async Task<List<Song>> SearchAsync(string filter, int page = 1)
         {
-            var jsonResponse = await GetJsonSearchResponseAsync(filter);
-            var searchResult = JsonConvert.DeserializeObject<ChorusSearchResult>(jsonResponse);
+            var jsonResponse = await GetJsonSearchResponseAsync(filter, page);
+            var searchResult = JsonConvert.DeserializeObject<ChorusSearchResult>(jsonResponse, new SongJsonConverter());
             return searchResult.Songs;
         }
 
-        private string BuildSearchQuery(SongProps songProps, int page = 1)
+        /// <summary>
+        /// Returns a query string in accordance to the Chorus API specs
+        /// </summary>
+        /// <param name="props">Song props for the query</param>
+        /// <param name="page">Result page</param>
+        /// <returns>A space-delimited query string</returns>
+        private string BuildSearchQuery(SongProps props)
         {
-            return $"name=\"{songProps.Name}\" artist=\"{songProps.Artist}\"" +
-                   $" album=\"{songProps.Album}\" genre=\"{songProps.Genre}\"&from={(page-1)*20}";
+            var queryString = new StringBuilder();
+
+            queryString.Append(props.ToQueryString());
+
+            // difficulties -> flags
+            // https://github.com/Paturages/chorus/blob/a18731cedb144b95c17f734b97a85c2ec1274d38/src/utils/db.js#L121
+            foreach (var instrument in props.Instruments ?? Enumerable.Empty<SongProps.Instrument>())
+                queryString.Append($" diff_{ instrument.GetName() }=15"); // available levels
+
+            return queryString.ToString().Trim();
         }
 
-        private async Task<string> GetJsonSearchResponseAsync(string searchQuery)
-        {
-            return await GetJsonResponseAsync("search", $"query={searchQuery}");
-        }
+
+
+        private async Task<string> GetJsonSearchResponseAsync(string searchQuery, int page = 1) =>
+            await GetJsonResponseAsync("search", $"query={searchQuery}&from={(page - 1) * 20}");
 
         private async Task<string> GetJsonResponseAsync(string action, string query)
         {
@@ -51,7 +65,7 @@ namespace ChorusLib
 
             HttpWebRequest request = WebRequest.CreateHttp(uriBuilder.Uri);
             request.ProtocolVersion = HttpVersion.Version11;
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
+            using (var response = (HttpWebResponse)await request.GetResponseAsync())
             using (Stream responseStream = response.GetResponseStream())
             using (StreamReader streamReader = new StreamReader(responseStream))
             {

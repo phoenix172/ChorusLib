@@ -49,8 +49,10 @@
   <ItemGroup>
     <Compile Include="ChorusApi.cs" />
     <Compile Include="ChorusSearchResult.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="IChorusApi.cs" />
     <Compile Include="IFileDownloader.cs" />
+    <Compile Include="SongJsonConverter.cs" />
     <Compile Include="WebRequestDownloader.cs" />
     <Compile Include="Song.cs" />
     <Compile Include="SongDownloader.cs" />
