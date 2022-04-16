@@ -39,26 +39,17 @@ namespace ChorusLib
         {
             var queryString = new StringBuilder();
 
-            // make it somewhat dynamic by getting all string properties
-            foreach (var property in props.GetType().GetProperties().Where(x => x.PropertyType == typeof(string)))
-            {
-                var value = property.GetValue(props) as string;
-                if (!string.IsNullOrEmpty(value)) queryString.Append($" {property.Name.ToLowerInvariant()}=\"{value}\"");
-            }
+            queryString.Append(props.ToQueryString());
 
             // difficulties -> flags
             // https://github.com/Paturages/chorus/blob/a18731cedb144b95c17f734b97a85c2ec1274d38/src/utils/db.js#L121
             foreach (var instrument in props.Instruments ?? Enumerable.Empty<SongProps.Instrument>())
-            {
-                //queryString += $" tier_{ GetInstrumentName(instrument)}=Dgt0"; // rb2 difficulty
-                queryString.Append($" diff_{ GetInstrumentName(instrument)}=15"); // available levels
-            }
+                queryString.Append($" diff_{ instrument.GetName() }=15"); // available levels
 
             return queryString.ToString().Trim();
         }
 
-        private static string GetInstrumentName(SongProps.Instrument instrument) =>
-            Enum.GetName(typeof(SongProps.Instrument), instrument).ToLowerInvariant();
+
 
         private async Task<string> GetJsonSearchResponseAsync(string searchQuery, int page = 1) =>
             await GetJsonResponseAsync("search", $"query={searchQuery}&from={(page - 1) * 20}");
@@ -74,36 +65,12 @@ namespace ChorusLib
 
             HttpWebRequest request = WebRequest.CreateHttp(uriBuilder.Uri);
             request.ProtocolVersion = HttpVersion.Version11;
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
+            using (var response = (HttpWebResponse)await request.GetResponseAsync())
             using (Stream responseStream = response.GetResponseStream())
             using (StreamReader streamReader = new StreamReader(responseStream))
             {
                 return await streamReader.ReadToEndAsync();
             }
-        }
-
-        /// <summary>
-        /// Extracts instrument data from the Chorus API result to the Song model
-        /// </summary>
-        private class SongJsonConverter : JsonConverter<Song>
-        {
-            public override bool CanWrite => false;
-
-            public override Song ReadJson(JsonReader reader, Type objectType, Song existingValue, bool hasExistingValue, JsonSerializer serializer)
-            {
-                JObject props = JObject.Load(reader);
-
-                var song = props.ToObject<Song>();
-
-                song.Instruments =
-                    (Enum.GetValues(typeof(SongProps.Instrument)) as SongProps.Instrument[])
-                        .Where(instrument => (props["hashes"] as JObject).ContainsKey(GetInstrumentName(instrument)))
-                        .ToList();
-
-                return song;
-            }
-
-            public override void WriteJson(JsonWriter writer, Song value, JsonSerializer serializer) => throw new NotImplementedException();
         }
     }
 }
